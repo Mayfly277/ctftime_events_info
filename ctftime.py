@@ -1,36 +1,26 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
 
-import sys, getopt
+import sys
 import requests
 import datetime
+from prettytable import PrettyTable
 
 
 def print_ctf(ctfs):
-    key_list = (
-        ('title', 40),
-        ('onsite', 10),
-        ('start', 12),
-        ('finish', 12),
-        ('url', 40),
-        ('format', 20),
-        ('participants', 12),
-        ('ctftime_url', 40)
-    )
-    head = ''
-    for (header, format) in key_list:
-        f = '| {:' + str(format)[0:format - 2] + 's}'
-        head += f.format(str(header)) + ' '
-    print head
+    t = PrettyTable()
+    t.field_names = ['title', 'onsite', 'start', 'finish', 'url', 'format', 'participants', 'ctftime_url']
+    t.align['title'] = 'l'
+    t.align['url'] = 'l'
     for ctf in ctfs:
-        line = ''
-        for (key, format) in key_list:
-            f = '| {:' + str(format) + 's}'
-            if not isinstance(ctf[key], str):
-                line += f.format(str(ctf[key])[0:format - 2]) + ' '
+        row = []
+        for key in t.field_names:
+            if key == 'start' or key == 'finish':
+                row.append(ctf[key][0:10])
             else:
-                line += f.format(ctf[key].encode('utf-8')[0:format - 2]) + ' '
-        print line
+                row.append(ctf[key])
+        t.add_row(row)
+    print t
 
 
 def call_api(start, finish, limit=100):
