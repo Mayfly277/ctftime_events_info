@@ -1,17 +1,21 @@
-#! /usr/bin/python2.7
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import sys
 import requests
 import datetime
-from prettytable import PrettyTable
-
+try:
+    from prettytable import PrettyTable
+except ImportError:
+    print('Please install prettytable')
+    sys.exit(1)
 
 def print_ctf(ctfs):
     t = PrettyTable()
-    t.field_names = ['title', 'onsite', 'start', 'finish', 'url', 'format', 'participants', 'ctftime_url']
+    t.field_names = ['title', 'onsite', 'start', 'finish', 'url', 'format', 'participants', 'ctftime_url'] # 'description'
     t.align['title'] = 'l'
     t.align['url'] = 'l'
+    # t.align['description'] = 'l'
     for ctf in ctfs:
         row = []
         for key in t.field_names:
@@ -20,16 +24,19 @@ def print_ctf(ctfs):
             else:
                 row.append(ctf[key])
         t.add_row(row)
-    print t
+    print(t)
 
 
 def call_api(start, finish, limit=100):
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'}
     params = {
         'limit': limit,
         'start': start,
         'finish': finish}
     url = 'https://ctftime.org/api/v1/events/'
-    r = requests.get(url, params=params)
+    r = requests.get(url, params=params, headers=headers)
+    r.raise_for_status()
     return r.json()
 
 
@@ -49,10 +56,11 @@ def main(argv):
 
     start = now + datetime.timedelta(days=startd)
     end = now + datetime.timedelta(days=endd)
-    r = call_api(start.strftime("%s"), end.strftime("%s"))
+    start_ts = int(start.timestamp())
+    end_ts = int(end.timestamp())
+    r = call_api(start_ts, end_ts)
     print_ctf(r)
     return 'ok'
-
 
 if __name__ == '__main__':
     if len(sys.argv) > 0:
